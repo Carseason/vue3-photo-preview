@@ -1,18 +1,14 @@
 <template>
-  <span
-    v-if="$slots.default && $slots.default()"
-    ref="root"
-    style="display:inline-block;"
-    class="PhotoConsumer"
+  <div class="PhotoConsumer" 
     @click="handleClick"
   >
     <!-- @slot 默认插槽 -->
     <slot />
-  </span>
+  </div>
 </template>
 
 <script lang='ts'>
-import { defineComponent, inject, onMounted, onUnmounted, ref, watch, toRefs } from 'vue';
+import { defineComponent, inject, onMounted, onUnmounted, toRefs } from 'vue';
 import { updateItemKey, removeItemKey, handleShowKey } from '../symbols';
 import uniqueId from 'lodash-es/uniqueId';
 
@@ -45,7 +41,6 @@ export default defineComponent({
     const updateItem = inject(updateItemKey);
     const removeItem = inject(removeItemKey);
     const handleShow = inject(handleShowKey);
-    const root = ref<HTMLElement | null>(null);
     const key = uniqueId();
     const { src, intro, downloadName } = toRefs(props);
 
@@ -55,13 +50,8 @@ export default defineComponent({
     const getItem = () => ({
       key,
       src: src.value,
-      originRef: root.value,
       intro: intro.value,
       downloadName: downloadName.value
-    });
-
-    watch([src, intro, downloadName], () => {
-      updateItem?.(getItem());
     });
 
     onMounted(() => {
@@ -72,12 +62,10 @@ export default defineComponent({
     });
 
     return {
-      root,
       handleClick
     };
   },
 });
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

@@ -9,11 +9,21 @@ const components = [
   PhotoSlider
 ];
 
-const install = (app: App): void  => {
+const install = (app: App): void => {
   components.forEach(component => {
-    app.component(component.name, component);
+    if (component.name) {
+      app.component(component.name, component);
+    }
   });
 };
+
+declare module 'vue' {
+  export interface GlobalComponents {
+    PhotoProvider: typeof PhotoProvider,
+    PhotoConsumer: typeof PhotoConsumer,
+    PhotoSlider: typeof PhotoSlider
+  }
+}
 
 export * from './types';
 
