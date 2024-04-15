@@ -1,30 +1,30 @@
 <template>
   <!-- @slot 默认插槽 -->
   <slot />
-  <photo-slider
-    :visible="visible"
-    :index="index"
-    :should-transition="shouldTransition"
+  <photo-slider 
+    :visible="visible" 
+    :index="index" 
+    :should-transition="shouldTransition" 
     :toggle-overlay="!photoClosable"
-    :default-backdrop-opacity="defaultBackdropOpacity"
-    :items="items"
-    :loop="loop"
+    :default-backdrop-opacity="defaultBackdropOpacity" 
+    :items="items" 
+    :loop="loop" 
     :download-method="downloadMethod"
     @clickPhoto="handleClickPhoto"
-    @clickMask="handleClickMask"
-    @changeIndex="updateIndex"
-    @closeModal="handleHide"
+    @clickMask="handleClickMask" 
+    @changeIndex="updateIndex" 
+    @closeModal="handleHide" 
   />
 </template>
 
 <script lang='ts'>
 import { defineComponent, PropType, provide } from 'vue';
 import { updateItemKey, removeItemKey, handleShowKey } from '../symbols';
-import useItems from './useItems';
 import useVisible from './useVisible';
 import useIndex from './useIndex';
 import PhotoSlider from '../PhotoSlider/index.vue';
 import { ItemType } from '../types';
+import { ref } from 'vue';
 
 export default defineComponent({
   name: 'PhotoProvider',
@@ -76,7 +76,7 @@ export default defineComponent({
     }
   },
   emits: ['indexChange', 'visibleChange'],
-  setup(_props, { emit }) {
+  setup(props, { emit }) {
     const onIndexChange = () => {
       emit('indexChange', { index, items, visible });
     };
@@ -84,13 +84,40 @@ export default defineComponent({
       emit('visibleChange', { index, items, visible });
     };
     const { index, updateIndex } = useIndex(onIndexChange);
-    const { items, updateItem, removeItem } = useItems(index);
+    // const { items, updateItem, removeItem } = useItems(index);
+    const items = ref<ItemType[]>([]);
+    const updateItem = (item: ItemType) => {
+      const index = items.value.findIndex(({ key }) => item.key === key);
+      if (index > -1) {
+        items.value.splice(index, 1, item);
+      } else {
+        items.value.push(item);
+      }
+    };
+    const removeItem = (key: string) => {
+      const nextItems = items.value.filter((item) => item.key !== key);
+      const nextEndIndex = nextItems.length - 1;
+
+      items.value = nextItems;
+      index.value = Math.max(Math.min(index.value, nextEndIndex), 0);
+    };
+
+
     const { visible, handleHide, handleShow } = useVisible(items, index, onVisibleChange);
 
     provide(updateItemKey, updateItem);
     provide(removeItemKey, removeItem);
     provide(handleShowKey, handleShow);
-
+    const handleClickPhoto = () => {
+      if (props.photoClosable) {
+        handleHide();
+      }
+    };
+    const handleClickMask = () => {
+      if (props.maskClosable) {
+        handleHide();
+      }
+    };
     return {
       items,
       updateItem,
@@ -100,22 +127,11 @@ export default defineComponent({
       handleShow,
       index,
       updateIndex,
+      handleClickPhoto,
+      handleClickMask,
     };
   },
-  methods: {
-    handleClickPhoto() {
-      if (this.photoClosable) {
-        this.handleHide();
-      }
-    },
-    handleClickMask() {
-      if (this.maskClosable) {
-        this.handleHide();
-      }
-    }
-  }
 });
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>
